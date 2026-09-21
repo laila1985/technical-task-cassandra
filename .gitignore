@@ -1,0 +1,21 @@
+# Build output
+build/
+out/
+
+# Runtime output
+output/
+input/
+processed/
+failed/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log

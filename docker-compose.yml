@@ -1,0 +1,44 @@
+services:
+  cassandra:
+    image: cassandra:3.11
+    container_name: pcap-cassandra
+    environment:
+      - CASSANDRA_CLUSTER_NAME=pcap
+      - CASSANDRA_DC=dc1
+      - CASSANDRA_RACK=rack1
+    ports:
+      - "9042:9042"
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'DESCRIBE CLUSTER' || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+
+  app:
+    build: .
+    container_name: pcap-app
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    environment:
+      # Point the app at the Cassandra service (overrides application.properties).
+      CASSANDRA_CONTACT_POINTS: cassandra
+      CASSANDRA_PORT: "9042"
+      CASSANDRA_CONNECT_RETRIES: "30"
+      CASSANDRA_CONNECT_RETRY_DELAY_MS: "2000"
+      STORAGE_MODE: cassandra
+      INPUT_FOLDER: /app/input
+      OUTPUT_FOLDER: /app/output/images
+      STORAGE_FILE_FOLDER: /app/output/data
+    volumes:
+      # Drop PCAP files here; they are consumed by the folder watcher.
+      - ./input:/app/input
+      # Extracted images and (optionally) file-mode output are written here.
+      - ./output:/app/output
+    command: ["--config", "conf/application.properties"]
+
+volumes:
+  cassandra_data:

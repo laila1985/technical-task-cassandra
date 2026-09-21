@@ -1,0 +1,7 @@
+build/
+output/
+input/
+.git/
+docs/
+*.odt
+*.md
